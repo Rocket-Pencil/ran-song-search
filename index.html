@@ -9,7 +9,7 @@
     <meta property="og:title" content="Ran 歌枠検索サイト (非公式)">
     <meta property="og:description" content="VTuber Ranの歌みた・歌枠動画を検索できる非公式ファンサイトです。">
     <meta property="og:url" content="https://ran-uta-search.example.com">
-    <meta property="og:image" content="image/OGPimage.jpg">
+    <meta property="og:image" content="https://rocket-pencil.github.io/ran-song-search/image/OGPimage.jpg">
     <meta property="og:type" content="website">
     <!-- End OGP Tags -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -146,7 +146,7 @@
                 margin-top: 0; /* デスクトップでは上マージンをリセット */
                 margin-left: 1.5rem; /* 左ペインとの間隔 (lg:space-x-6に合わせる) */
                 flex-grow: 0; /* 横方向に成長するのを防ぐ (widthで固定するため) */
-                flex-shrink: 0; /* 横方向に縮むのを防ぐ */
+                flex-shrink: 0; /* 横方向に縮むを防止 */
             }
         }
 
@@ -339,14 +339,23 @@
         .splash-content {
             position: relative;
             z-index: 1;
+            /* 1) splash-content をフレックス中央寄せ */
+            display: flex;
+            justify-content: center;
+            align-items: center; /* ← 任意: 垂直中央も固定 */
+            text-align: center;
+            flex-direction: column; /* 子要素を縦に並べるために追加 */
         }
         /* スプラッシュ見出しのスタイル */
         #splash-heading {
             background-color: rgba(255,192,203,0.7); /* 70% 不透明＝30% 透過 */
-            display:inline-block;
+            /* display:inline-block; を display:block に変更 */
+            display: block;
             padding:0.5rem 1rem;
             border-radius:0.5rem;
             color:#333; /* 濃いグレー／完全不透明 */
+            /* ピンク枠＋文字をブロック化して margin で中央 */
+            margin:0 auto;
         }
         /* スプラッシュ見出し内の【非公式】の文字サイズを小さくする */
         #splash-heading .unofficial-text {
@@ -664,7 +673,7 @@
             { title: "セツナトリップ", youtubeId: `RA4cG96r0sA?start=${timeToSeconds('1:07:40')}&end=${timeToSeconds('1:11:44')}`, type: "カラオケ" },
             { title: "サリシノハラ", youtubeId: `RA4cG96r0sA?start=${timeToSeconds('1:12:46')}&end=${timeToSeconds('1:17:10')}`, type: "カラオケ" },
             { title: "からくりピエロ", youtubeId: `RA4cG96r0sA?start=${timeToSeconds('1:18:24')}&end=${timeToSeconds('1:22:33')}`, type: "カラオケ" },
-            { title: "トウキョウト・ロック・シティ", youtubeId: `RA4cG96r0sA?start=${timeToSeconds('1:24:01')}&end=${timeToSeconds('1:28:10')}`, type: "カラオケ" },
+            { title: "トウキョウ・ロック・シティ", youtubeId: `RA4cG96r0sA?start=${timeToSeconds('1:24:01')}&end=${timeToSeconds('1:28:10')}`, type: "カラオケ" },
             { title: "アイのシナリオ", youtubeId: `RA4cG96r0sA?start=${timeToSeconds('1:29:15')}&end=${timeToSeconds('1:33:36')}`, type: "カラオケ" },
             { title: "ワールドイズマイン", youtubeId: `RA4cG96r0sA?start=${timeToSeconds('1:34:54')}&end=${timeToSeconds('1:39:10')}`, type: "カラオケ" },
             // 既存の歌枠の曲 (URL: https://www.youtube.com/live/jDMkBPUfFaU)
