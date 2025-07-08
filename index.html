@@ -10,13 +10,14 @@
     <meta property="og:description" content="VTuber Ranの歌みた・歌枠動画を検索できる非公式ファンサイトです。">
     <meta property="og:url" content="https://ran-uta-search.example.com">
     <!-- 既存 og:image をラージ画像に置き換え -->
-    <meta property="og:image" content="https://rocket-pencil.github.io/ran-song-search/image/OGPimage-lg.jpg">
+    <meta property="og:image" content="https://rocket-pencil.github.io/ran-song-search/image/OGPimage.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:type" content="website">
     <!-- Twitter (X) 用： summary_large_image カードに固定 -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://rocket-pencil.github.io/ran-song-search/image/OGPimage-lg.jpg">
+    <meta name="twitter:image" content="https://rocket-pencil.github.io/ran-song-search/image/OGPimage.jpg">
+    <!-- タイトル／説明は既存の og:title・og:description を流用 -->
     <!-- End OGP Tags -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -377,22 +378,6 @@
         .left-pane .relative {
             aspect-ratio: 16 / 9;
             max-height: 100vh; /* 画面をはみ出さないようにする */
-        }
-
-        /* --- 横向き (landscape) で高さが 500px 未満の場合のレイアウト修正 --- */
-        @media (orientation: landscape) and (max-height: 500px){
-            /* 1) main-container を column → row へ */
-            .main-container{ flex-direction: row; }
-
-            /* 2) 左ペイン（動画）と右ペイン（リスト）の幅を調整 */
-            .left-pane  { width: 55%; }  /* 動画側を少し絞る */
-            .right-pane { width: 45%; }  /* リスト側を広げる */
-
-            /* 3) 動画高さを抑え、リストが最低 2 曲分見えるようにする */
-            .left-pane .relative{
-                max-height: 60vh;            /* 画面高の 60% 以内に制限 */
-                aspect-ratio: 16/9;          /* モダン指定で padding ハック不要 */
-            }
         }
     </style>
 </head>
@@ -1141,7 +1126,28 @@
         }
 
         /**
-         * 指定された動画をYouTubeプレイヤーにロードします。
+         * 指定された動画をYouTubeプレイヤーにロードします。(タブ内クリック用)
+         * @param {number} index - ロードする動画のcurrentVideoList配列内のインデックス
+         */
+        function loadVideo(index) {
+            if (index >= 0 && index < currentVideoList.length) {
+                const video = currentVideoList[index]; // currentVideoIndexではなく、渡されたindexを使用
+                loadVideoFromAnyList(video, video.type);
+            } else {
+                currentSongTitle.textContent = "曲がありません";
+                if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+                    ytPlayer.stopVideo();
+                    youtubePlayerIframe.src = "";
+                } else if (youtubePlayerIframe) {
+                    youtubePlayerIframe.src = "";
+                }
+                currentlyLoadedFullYoutubeId = ''; // 動画がない場合は追跡IDをクリア
+                updateActiveClass();
+            }
+        }
+
+        /**
+         * 指定された動画をYouTubeプレイヤーにロードします。(タブ内クリック用)
          * @param {object} video - ロードする動画オブジェクト
          * @param {string} originalListType - その動画が元々属していたリストのタイプ ('歌みた'または'カラオケ')
          */
@@ -1199,27 +1205,6 @@
             }
         }
 
-
-        /**
-         * 指定された動画をYouTubeプレイヤーにロードします。(タブ内クリック用)
-         * @param {number} index - ロードする動画のcurrentVideoList配列内のインデックス
-         */
-        function loadVideo(index) {
-            if (index >= 0 && index < currentVideoList.length) {
-                const video = currentVideoList[index]; // currentVideoIndexではなく、渡されたindexを使用
-                loadVideoFromAnyList(video, video.type);
-            } else {
-                currentSongTitle.textContent = "曲がありません";
-                if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-                    ytPlayer.stopVideo();
-                    youtubePlayerIframe.src = "";
-                } else if (youtubePlayerIframe) {
-                    youtubePlayerIframe.src = "";
-                }
-                currentlyLoadedFullYoutubeId = ''; // 動画がない場合は追跡IDをクリア
-                updateActiveClass();
-            }
-        }
 
         /**
          * 動画リストを動的に生成し、HTMLに挿入します。
