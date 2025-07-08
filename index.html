@@ -80,6 +80,7 @@
             box-sizing: border-box; /* パディングを高さに含める */
             flex-direction: column; /* メインコンテナとフッターを縦に並べる */
             overflow: hidden; /* アプリコンテナ全体はスクロールしない */
+            overflow-y: auto; /* (任意) アプリ領域だけでもスクロールできるようにしておく */
         }
         #app-container.show {
             display: flex; /* JavaScriptで表示する際にflexにする */
@@ -366,6 +367,11 @@
         .splash-content p{
             color:#FFFFFF; /* 白／完全不透明 */
         }
+        /* (任意) 左ペイン動画の .relative 要素に aspect-ratio と max-height を追加 */
+        .left-pane .relative {
+            aspect-ratio: 16 / 9;
+            max-height: 100vh; /* 画面をはみ出さないようにする */
+        }
     </style>
 </head>
 <body>
@@ -375,7 +381,7 @@
         </video>
         <div class="splash-content">
             <!-- プレースホルダ画像を削除しました -->
-            <h1 id="splash-heading" class="text-4xl sm:text-5xl font-bold text-center text-gray-800 mb-4 animate-pulse">
+            <h1 id="splash-heading" class="text-4xl sm:text-5xl font-bold text-center text-gray-800 mb-4">
                 VTuber<br>Ranの<br>song search<br><span class="unofficial-text">【非公式】</span>
             </h1>
             <p class="text-xl sm:text-2xl text-center text-gray-600">
@@ -393,7 +399,7 @@
                             src=""
                             title="YouTube video player"
                             frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-in; gyroscope; picture-in-picture; web-share"
                             allowfullscreen>
                     </iframe>
                 </div>
@@ -1408,7 +1414,7 @@
                 currentSongTitle.textContent = "利用規約"; // タイトル表示を更新
                 if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
                     ytPlayer.stopVideo(); // 動画を停止
-                    youtubePlayerIframe.src = ""; // プレイヤーを空にする
+                    youtubePlayerIframe.src = ""; // 
                 } else if (youtubePlayerIframe) {
                     youtubePlayerIframe.src = "";
                 }
@@ -1461,6 +1467,7 @@
                 setTimeout(() => {
                     splashScreen.style.display = 'none'; // フェードアウト後に非表示にする
                     appContainer.classList.add('show'); // メインコンテンツを表示
+                    document.body.style.overflow = "auto"; // (1) bodyのoverflow:hiddenを解除
                 }, 500); // フェードアウトのtransition時間と同じかそれ以上に設定
 
                 // 全曲リストと歌枠リストの両方をレンダリング
