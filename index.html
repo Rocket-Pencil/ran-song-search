@@ -9,8 +9,14 @@
     <meta property="og:title" content="Ran 歌枠検索サイト (非公式)">
     <meta property="og:description" content="VTuber Ranの歌みた・歌枠動画を検索できる非公式ファンサイトです。">
     <meta property="og:url" content="https://ran-uta-search.example.com">
-    <meta property="og:image" content="https://rocket-pencil.github.io/ran-song-search/image/OGPimage.jpg">
+    <!-- 既存 og:image をラージ画像に置き換え -->
+    <meta property="og:image" content="https://rocket-pencil.github.io/ran-song-search/image/OGPimage-lg.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:type" content="website">
+    <!-- Twitter (X) 用： summary_large_image カードに固定 -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://rocket-pencil.github.io/ran-song-search/image/OGPimage-lg.jpg">
     <!-- End OGP Tags -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -372,6 +378,22 @@
             aspect-ratio: 16 / 9;
             max-height: 100vh; /* 画面をはみ出さないようにする */
         }
+
+        /* --- 横向き (landscape) で高さが 500px 未満の場合のレイアウト修正 --- */
+        @media (orientation: landscape) and (max-height: 500px){
+            /* 1) main-container を column → row へ */
+            .main-container{ flex-direction: row; }
+
+            /* 2) 左ペイン（動画）と右ペイン（リスト）の幅を調整 */
+            .left-pane  { width: 55%; }  /* 動画側を少し絞る */
+            .right-pane { width: 45%; }  /* リスト側を広げる */
+
+            /* 3) 動画高さを抑え、リストが最低 2 曲分見えるようにする */
+            .left-pane .relative{
+                max-height: 60vh;            /* 画面高の 60% 以内に制限 */
+                aspect-ratio: 16/9;          /* モダン指定で padding ハック不要 */
+            }
+        }
     </style>
 </head>
 <body>
@@ -650,7 +672,7 @@
             // 既存の歌枠の曲 (URL: https://www.youtube.com/live/XRNYupTxGY0)
             { title: "the Fourth Avenue Cafe", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('4:32')}&end=${timeToSeconds('9:28')}`, type: "カラオケ" },
             { title: "残酷な天使のテーゼ", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('11:17')}&end=${timeToSeconds('15:28')}`, type: "カラオケ" },
-            { title: "What is love?", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('18:04')}&end=${timeToSeconds('21:30')}`, type: "カラオケ" },
+            { title: "What is love?", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('18:04')}&end=${timeToSeconds('21:30')}`, type: "カラオケ" } ,
             { title: "real Emotion", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('23:10')}&end=${timeToSeconds('27:06')}`, type: "カラオケ" },
             { title: "キューティーハニー", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('27:59')}&end=${timeToSeconds('31:00')}`, type: "カラオケ" },
             { title: "someday", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('32:30')}&end=${timeToSeconds('36:52')}`, type: "カラオケ" },
@@ -741,7 +763,7 @@
             { title: "PEACH", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('1:52:52')}&end=${timeToSeconds('1:56:53')}`, type: "カラオケ" },
             { title: "夏色えがおで1,2,Jump!", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('1:57:58')}&end=${timeToSeconds('2:02:26')}`, type: "カラオケ" },
             { title: "オトナブルー", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('2:08:18')}&end=${timeToSeconds('2:11:20')}`, type: "カラオケ" },
-            { title: "トウキョウ・シャンディ・ランデヴ", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('2:13:31')}&end=${timeToSeconds('2:16:32')}`, type: "カラオケ" },
+            { title: "トウキョウ・シャンディ・ランデヴ", youtubeId: `2:13:31?start=${timeToSeconds('2:13:31')}&end=${timeToSeconds('2:16:32')}`, type: "カラオケ" },
             // 既存の歌枠の曲 (URL: https://www.youtube.com/live/kxlrKZmgJpA)
             { title: "Magnetic", youtubeId: `kxlrKZmgJpA?start=${timeToSeconds('6:00')}&end=${timeToSeconds('8:38')}`, type: "カラオケ" },
             { title: "花火", youtubeId: `kxlrKZmgJpA?start=${timeToSeconds('9:57')}&end=${timeToSeconds('14:33')}`, type: "カラオケ" },
