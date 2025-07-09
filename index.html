@@ -1117,11 +1117,23 @@
             showMessage(errorMessage + " しばらくしてからもう一度お試しください。");
         }
 
+        // 次の動画を再生するユーティリティ
+        function playNextVideo() {
+            if (!currentVideoList || currentVideoList.length === 0) return;
+            const nextIndex = (currentVideoIndex + 1) % currentVideoList.length;
+            loadVideo(nextIndex);
+        }
+
+        // 前の動画を再生するユーティリティ
+        function playPrevVideo() {
+            if (!currentVideoList || currentVideoList.length === 0) return;
+            const prevIndex = (currentVideoIndex - 1 + currentVideoList.length) % currentVideoList.length;
+            loadVideo(prevIndex);
+        }
 
         function onPlayerStateChange(event) {
             if (event.data === YT.PlayerState.ENDED) {
-                const newIndex = (currentVideoIndex + 1) % currentVideoList.length;
-                loadVideo(newIndex); // 次の動画へ進む (リストの最後まで行ったら最初に戻る)
+                playNextVideo(); // 共通関数を呼び出す
             }
         }
 
@@ -1130,6 +1142,7 @@
          * @param {number} index - ロードする動画のcurrentVideoList配列内のインデックス
          */
         function loadVideo(index) {
+            currentVideoIndex = index; // ★追加
             if (index >= 0 && index < currentVideoList.length) {
                 const video = currentVideoList[index]; // currentVideoIndexではなく、渡されたindexを使用
                 loadVideoFromAnyList(video, video.type);
@@ -1445,19 +1458,23 @@
 
 
         // イベントリスナーの設定
-        prevButton.addEventListener('click', () => {
+        // 既存のイベントリスナーを削除し、新しい共通関数を割り当てる
+        prevButton.removeEventListener('click', () => {
             if (currentVideoList && currentVideoList.length > 0) {
                 const newIndex = (currentVideoIndex - 1 + currentVideoList.length) % currentVideoList.length;
                 loadVideo(newIndex);
             }
         });
+        prevButton.addEventListener('click', playPrevVideo);
 
-        nextButton.addEventListener('click', () => {
+        // 既存のイベントリスナーを削除し、新しい共通関数を割り当てる
+        nextButton.removeEventListener('click', () => {
             if (currentVideoList && currentVideoList.length > 0) {
                 const newIndex = (currentVideoIndex + 1) % currentVideoList.length;
                 loadVideo(newIndex);
             }
         });
+        nextButton.addEventListener('click', playNextVideo);
 
         allSongsTabButton.addEventListener('click', () => showTab('all-songs'));
         karaokeTabButton.addEventListener('click', () => showTab('karaoke'));
