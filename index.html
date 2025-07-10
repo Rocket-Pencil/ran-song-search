@@ -773,8 +773,8 @@
             { title: "CH4NGE", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('4:57')}&end=${timeToSeconds('7:10')}`, type: "カラオケ" },
             { title: "恋のヒメヒメぺったんこ", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('8:44')}&end=${timeToSeconds('12:40')}`, type: "カラオケ" },
             { title: "You&Me", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('15:14')}&end=${timeToSeconds('19:12')}`, type: "カラオケ" },
-            { title: "破滅の純情", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('21:15')}&end=${timeToSeconds('25:40')}`, type: "カラオケ" },
-            { title: "サンドリヨン", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('28:45')}&end=${timeToSeconds('33:09')}`, type: "カラオケ" } ,
+            { title: "破滅の純情", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('21:15')}&end=${timeToSeconds('25:40')}`, type: "カラオケ" } ,
+            { title: "サンドリヨン", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('28:45')}&end=${timeToSeconds('33:09')}`, type: "カラオケ" },
             { title: "チューリングラブ feat.Sou", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('36:02')}&end=${timeToSeconds('39:39')}`, type: "カラオケ" },
             { title: "ラヴィ", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('44:08')}&end=${timeToSeconds('47:07')}`, type: "カラオケ" },
             { title: "ID", youtubeId: `Q3nIVEWuKSk?start=${timeToSeconds('49:44')}&end=${timeToSeconds('53:31')}`, type: "カラオケ" },
@@ -1458,22 +1458,10 @@
 
 
         // イベントリスナーの設定
-        // 既存のイベントリスナーを削除し、新しい共通関数を割り当てる
-        prevButton.removeEventListener('click', () => {
-            if (currentVideoList && currentVideoList.length > 0) {
-                const newIndex = (currentVideoIndex - 1 + currentVideoList.length) % currentVideoList.length;
-                loadVideo(newIndex);
-            }
-        });
+        // 「前へ」ボタンのイベントリスナーを共通関数に差し替え
         prevButton.addEventListener('click', playPrevVideo);
 
-        // 既存のイベントリスナーを削除し、新しい共通関数を割り当てる
-        nextButton.removeEventListener('click', () => {
-            if (currentVideoList && currentVideoList.length > 0) {
-                const newIndex = (currentVideoIndex + 1) % currentVideoList.length;
-                loadVideo(newIndex);
-            }
-        });
+        // 「次へ」ボタンのイベントリスナーを共通関数に差し替え
         nextButton.addEventListener('click', playNextVideo);
 
         allSongsTabButton.addEventListener('click', () => showTab('all-songs'));
