@@ -379,6 +379,11 @@
             aspect-ratio: 16 / 9;
             max-height: 100vh; /* 画面をはみ出さないようにする */
         }
+        /* ループボタンのアクティブ状態 */
+        .loop-button.active {
+            background-color: #6A0DAD; /* アクティブ時の背景色を濃いパープルに */
+            color: #FFFFFF;
+        }
     </style>
 </head>
 <body>
@@ -416,13 +421,22 @@
                         <p id="current-song-title" class="text-base font-semibold text-[#6A0DAD]"></p>
                     </div>
                     <div class="flex space-x-3">
+                        <!-- ボタンの順序を変更 -->
                         <button id="prev-button"
                                 class="px-3 py-1.5 bg-[#FFC0CB] text-white rounded-md hover:bg-[#FF99AA] focus:outline-none focus:ring-2 focus:ring-[#FFD1DD] focus:ring-opacity-75 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md text-xs">
                             前へ
                         </button>
+                        <button id="play-button"
+                                class="px-3 py-1.5 bg-[#FFC0CB] text-white rounded-md hover:bg-[#FF99AA] focus:outline-none focus:ring-2 focus:ring-[#FFD1DD] focus:ring-opacity-75 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md text-xs">
+                            <i class="fas fa-play"></i>
+                        </button>
                         <button id="next-button"
                                 class="px-3 py-1.5 bg-[#FFC0CB] text-white rounded-md hover:bg-[#FF99AA] focus:outline-none focus:ring-2 focus:ring-[#FFD1DD] focus:ring-opacity-75 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md text-xs">
                             次へ
+                        </button>
+                        <button id="loop-button"
+                                class="px-3 py-1.5 bg-[#FFC0CB] text-white rounded-md hover:bg-[#FF99AA] focus:outline-none focus:ring-2 focus:ring-[#FFD1DD] focus:ring-opacity-75 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md text-xs loop-button">
+                            <i class="fas fa-redo"></i>
                         </button>
                         <a href="https://youtube.com/@ranvtuber?si=jtv0qdv1yZIp_dx8" target="_blank" rel="noopener noreferrer"
                            class="youtube-button px-3 py-1.5 text-xs">
@@ -455,17 +469,16 @@
                         </div>
                     </div>
                     <div id="terms-tab-content" class="tab-content hidden terms-content">
-                        <h2 class="text-2xl font-bold text-[#6A0DAD] mb-4 border-b-2 border-[#FFC0CB] pb-2">歌枠検索サイト利用規約</h2>
-                        <p>この歌枠検索サイトは、VTuberのRanさんを応援するために有志のファンによって制作された非公式のウェブサイトです。Ranさんご本人とは一切関係ありません。</p>
+                        <h2 class="text-2xl font-bold text-[#6A0DAD] mb-4 border-b-2 border-[#FFC0CB] pb-2">サイトについて</h2>
+                        <p>この歌枠検索サイトは、VTuberのRanさんを応援するために制作された非公式のウェブサイトです。</p>
 
                         <h3>著作権について</h3>
-                        <p>当サイトに掲載されている動画コンテンツ（YouTube埋め込み動画）、画像、文章、その他すべてのコンテンツの著作権は、各コンテンツの権利所有者（Ranさん、楽曲制作者など）に帰属します。</p>
-                        <p>当サイトは、YouTubeの公式埋め込み機能を利用しており、YouTubeの利用規約および各著作権者のガイドラインに則って運営されています。</p>
-                        <p>当サイトのコンテンツを利用した営利目的の活動は一切禁止します。</p>
+                        <p>サイトに掲載されている動画コンテンツのYouTube埋め込み動画について、画像、文章、その他すべてのコンテンツの著作権は、各コンテンツの権利所有者に帰属します。</p>
+                        <p>当サイトは、YouTubeの埋め込み機能を利用しており、YouTubeの利用規約および各著作権者のガイドラインに則って運営されています。</p>
                         <p>当サイトのコンテンツを利用した営利目的の活動は一切禁止します。</p>
 
-                        <h3>ファン活動における注意事項</h3>
-                        <p>当サイトは、ファンによる非公式の応援サイトです。Ranさんの活動を尊重し、彼女の意図や公序良俗に反する行為は行わないでください。Ranさんご自身が公式の二次創作ガイドラインなどを公開されている場合は、そちらを優先的に遵守してください。</p>
+                        <h3>注意事項</h3>
+                        <p>当サイトは、ファンによる非公式の応援サイトです。Ranさんの活動を尊重し、公序良俗に反する行為は行わないでください</p>
                         <h3>免責事項</h3>
                         <p>当サイトの掲載情報の正確性については万全を期しておりますが、その内容を保証するものではありません。当サイトの利用によって生じたいかなる損害についても、当サイトは一切の責任を負いません。</p>
                         <p>また、当サイトからリンクされている外部サイトの内容について、当サイトは一切の責任を負いません。</p>
@@ -748,7 +761,7 @@
             { title: "PEACH", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('1:52:52')}&end=${timeToSeconds('1:56:53')}`, type: "カラオケ" },
             { title: "夏色えがおで1,2,Jump!", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('1:57:58')}&end=${timeToSeconds('2:02:26')}`, type: "カラオケ" },
             { title: "オトナブルー", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('2:08:18')}&end=${timeToSeconds('2:11:20')}`, type: "カラオケ" },
-            { title: "トウキョウ・シャンディ・ランデヴ", youtubeId: `2:13:31?start=${timeToSeconds('2:13:31')}&end=${timeToSeconds('2:16:32')}`, type: "カラオケ" },
+            { title: "トウキョウ・シャンディ・ランデヴ", youtubeId: `4n_bTP8ky14?start=${timeToSeconds('2:13:31')}&end=${timeToSeconds('2:16:32')}`, type: "カラオケ" },
             // 既存の歌枠の曲 (URL: https://www.youtube.com/live/kxlrKZmgJpA)
             { title: "Magnetic", youtubeId: `kxlrKZmgJpA?start=${timeToSeconds('6:00')}&end=${timeToSeconds('8:38')}`, type: "カラオケ" },
             { title: "花火", youtubeId: `kxlrKZmgJpA?start=${timeToSeconds('9:57')}&end=${timeToSeconds('14:33')}`, type: "カラオケ" },
@@ -1001,6 +1014,7 @@
         let currentVideoList = allSongsVideos; // 現在アクティブな動画リスト
         let currentVideoIndex = 0; // 現在再生中の動画のインデックス
         let ytPlayer; // YouTube Player APIインスタンス
+        let isLooping = false; // ループ状態を管理する変数
 
         // ヘルパー関数: 完全なYouTube ID文字列から動画ID、開始時間、終了時間を抽出
         function parseYoutubeId(fullYoutubeId) {
@@ -1023,7 +1037,9 @@
         const karaokeVideoListContainer = document.getElementById('karaoke-video-list');
         const currentSongTitle = document.getElementById('current-song-title');
         const prevButton = document.getElementById('prev-button');
+        const playButton = document.getElementById('play-button'); // 新しい再生ボタン
         const nextButton = document.getElementById('next-button');
+        const loopButton = document.getElementById('loop-button'); // 新しいループボタン
         const splashScreen = document.getElementById('splash-screen');
         const appContainer = document.getElementById('app-container');
 
@@ -1133,7 +1149,22 @@
 
         function onPlayerStateChange(event) {
             if (event.data === YT.PlayerState.ENDED) {
-                playNextVideo(); // 共通関数を呼び出す
+                if (isLooping) {
+                    // ループが有効な場合は現在の動画を再ロード
+                    const video = currentVideoList[currentVideoIndex];
+                    const { rawId, startSeconds, endSeconds } = parseYoutubeId(video.youtubeId);
+                    const loadOptions = {
+                        videoId: rawId,
+                        startSeconds: startSeconds
+                    };
+                    if (endSeconds && endSeconds > startSeconds) {
+                        loadOptions.endSeconds = endSeconds;
+                    }
+                    ytPlayer.loadVideoById(loadOptions);
+                    ytPlayer.playVideo(); // 再生を再開
+                } else {
+                    playNextVideo(); // 共通関数を呼び出す
+                }
             }
         }
 
@@ -1458,11 +1489,24 @@
 
 
         // イベントリスナーの設定
-        // 「前へ」ボタンのイベントリスナーを共通関数に差し替え
+        // 「前へ」ボタンのイベントリスナー
         prevButton.addEventListener('click', playPrevVideo);
 
-        // 「次へ」ボタンのイベントリスナーを共通関数に差し替え
+        // 「再生」ボタンのイベントリスナー
+        playButton.addEventListener('click', () => {
+            if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                ytPlayer.playVideo();
+            }
+        });
+
+        // 「次へ」ボタンのイベントリスナー
         nextButton.addEventListener('click', playNextVideo);
+
+        // 「ループ」ボタンのイベントリスナー
+        loopButton.addEventListener('click', () => {
+            isLooping = !isLooping; // ループ状態をトグル
+            loopButton.classList.toggle('active', isLooping); // アクティブクラスをトグル
+        });
 
         allSongsTabButton.addEventListener('click', () => showTab('all-songs'));
         karaokeTabButton.addEventListener('click', () => showTab('karaoke'));
