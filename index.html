@@ -20,8 +20,8 @@
     <!-- タイトル／説明は既存の og:title・og:description を流用 -->
     <!-- End OGP Tags -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQP1XQWqjR50l/Lg/P2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQP1XQWqjR50l/Lg/P2KqFj34x01+" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Body: パディングを#app-containerに移動。高さはビューポートいっぱい。 */
         body {
@@ -478,7 +478,7 @@
                 </div>
             </div>
         </div>
-        <p class="flex-shrink-0 text-center text-[#B0B0B0] text-sm mt-6 pb-2">© 2025 Ranのsong search（非公式）</p>
+        <p class="flex-shrink-0 text-center text-[#B0B0B0] text-sm mt-6 pb-2">© 2025 歌枠検索サイト（非公式）</p>
     </div>
 
     <!-- メッセージモーダルのHTML -->
@@ -489,37 +489,7 @@
         </div>
     </div>
 
-    <script>let playerReady = false; let pendingVideo = null;
-let player;
-
-
-
-    // ---- 次の動画へ移動（末尾なら先頭へループ） ----
-    function playNextVideo() {
-        if (!currentVideoList || currentVideoList.length === 0) return;
-        currentVideoIndex = (currentVideoIndex + 1) % currentVideoList.length;
-        const nextVideo = currentVideoList[currentVideoIndex];
-        loadVideoFromAnyList(nextVideo, currentOriginalListType);
-    }
-
-
-    // ---- 前の動画へ移動（先頭なら末尾へループ） ----
-    function playPrevVideo() {
-        if (!currentVideoList || currentVideoList.length === 0) return;
-        currentVideoIndex = (currentVideoIndex - 1 + currentVideoList.length) % currentVideoList.length;
-        const prevVideo = currentVideoList[currentVideoIndex];
-        loadVideoFromAnyList(prevVideo, currentOriginalListType);
-    }
-
-
-    // ---- プレーヤー状態監視 ----
-    function onPlayerStateChange(event) {
-        if (event.data === YT.PlayerState.ENDED) {
-            playNextVideo();
-        }
-    }
-
-
+    <script>
         // YouTube IFrame Player APIを非同期で読み込む
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -685,8 +655,8 @@ let player;
             { title: "君の知らない物語", youtubeId: `MxG5JSZQBjg?start=${timeToSeconds('1:55:34')}&end=${timeToSeconds('2:01:06')}`, type: "カラオケ" },
             // 既存の歌枠の曲 (URL: https://www.youtube.com/live/XRNYupTxGY0)
             { title: "the Fourth Avenue Cafe", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('4:32')}&end=${timeToSeconds('9:28')}`, type: "カラオケ" },
-            { title: "残酷な天使のテーゼ", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('11:17')}&end=${timeToSeconds('15:28')}`, type: "カラオケ" },
-            { title: "What is love?", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('18:04')}&end=${timeToSeconds('21:30')}`, type: "カラオケ" } ,
+            { title: "残酷な天使のテーゼ", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('11:17')}&end=${timeToSeconds('15:28')}`, type: "カラオケ" } ,
+            { title: "What is love?", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('18:04')}&end=${timeToSeconds('21:30')}`, type: "カラオケ" },
             { title: "real Emotion", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('23:10')}&end=${timeToSeconds('27:06')}`, type: "カラオケ" },
             { title: "キューティーハニー", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('27:59')}&end=${timeToSeconds('31:00')}`, type: "カラオケ" },
             { title: "someday", youtubeId: `XRNYupTxGY0?start=${timeToSeconds('32:30')}&end=${timeToSeconds('36:52')}`, type: "カラオケ" },
@@ -1071,10 +1041,11 @@ let player;
 
         // YouTube IFrame Player APIが読み込まれたときに呼ばれる関数
         function onYouTubeIframeAPIReady() {
-            // 初期タブの動画リストからランダムな動画を選択
+            // 初期タブの動画リストから最初の動画を選択するように変更
             currentVideoList = allSongsVideos; // 最初に歌みたリストをアクティブにする
-            currentVideoIndex = 0;
-if (currentVideoList.length === 0) {
+            currentVideoIndex = 0; // リストの最初の曲を選択
+
+            if (currentVideoList.length === 0) {
                 currentSongTitle.textContent = "曲がありません";
                 return;
             }
@@ -1105,16 +1076,9 @@ if (currentVideoList.length === 0) {
                     'onError': onPlayerError // エラーイベントリスナーを追加
                 }
             });
-        player = ytPlayer;
-}
+        }
 
         function onPlayerReady(event) {
-            playerReady = true;
-            if (pendingVideo) {
-                loadVideoFromAnyList(pendingVideo.video, pendingVideo.originalListType);
-                pendingVideo = null;
-            }
-
             console.log("YouTube Player is ready!");
             if (currentVideoList.length > 0) {
                 updateActiveClass();
@@ -1153,10 +1117,24 @@ if (currentVideoList.length === 0) {
         }
 
         // 次の動画を再生するユーティリティ
-        
+        function playNextVideo() {
+            if (!currentVideoList || currentVideoList.length === 0) return;
+            const nextIndex = (currentVideoIndex + 1) % currentVideoList.length;
+            loadVideo(nextIndex);
+        }
 
+        // 前の動画を再生するユーティリティ
+        function playPrevVideo() {
+            if (!currentVideoList || currentVideoList.length === 0) return;
+            const prevIndex = (currentVideoIndex - 1 + currentVideoList.length) % currentVideoList.length;
+            loadVideo(prevIndex);
+        }
 
-
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                playNextVideo(); // 共通関数を呼び出す
+            }
+        }
 
         /**
          * 指定された動画をYouTubeプレイヤーにロードします。(タブ内クリック用)
@@ -1185,18 +1163,11 @@ if (currentVideoList.length === 0) {
          * @param {object} video - ロードする動画オブジェクト
          * @param {string} originalListType - その動画が元々属していたリストのタイプ ('歌みた'または'カラオケ')
          */
-        let currentOriginalListType = '歌みた'; // 現在選択されているリストタイプ
-function loadVideoFromAnyList(video, originalListType){        if (!playerReady || !player || !player.loadVideoById) {
-            pendingVideo = { video: video, originalListType: originalListType };
-            return;
-        }
-
-    currentOriginalListType = originalListType;
-
+        function loadVideoFromAnyList(video, originalListType) {
             let targetList = [];
             if (originalListType === '歌みた') {
                 targetList = allSongsVideos;
-            }else if (originalListType === 'カラオケ') {
+            } else if (originalListType === 'カラオケ') {
                 targetList = karaokeVideos;
             }
 
@@ -1499,16 +1470,17 @@ function loadVideoFromAnyList(video, originalListType){        if (!playerReady 
 
 
         // ページロード時の処理
-        window.addEventListener("load", () => {
+        window.addEventListener('load', () => {
             // スプラッシュスクリーンはAPIが読み込まれる前に表示される
-            // 2秒後にスプラッシュスクリーンを非表示にし、メインコンテンツを表示
+            // 2.5秒後にスプラッシュスクリーンを非表示にし、メインコンテンツを表示
             setTimeout(() => {
                 splashScreen.classList.add('fade-out'); // フェードアウトクラスを追加
+                // フェードアウトのtransition時間と同じかそれ以上に設定 (0.5秒)
                 setTimeout(() => {
                     splashScreen.style.display = 'none'; // フェードアウト後に非表示にする
-                    appContainer.classList.add('show'); // メインコンテンツを表示
                     document.body.style.overflow = "auto"; // (1) bodyのoverflow:hiddenを解除
-                }, 500); // フェードアウトのtransition時間と同じかそれ以上に設定
+                }, 500); 
+                appContainer.classList.add('show'); // メインコンテンツを表示
 
                 // 全曲リストと歌枠リストの両方をレンダリング
                 renderVideoList(allSongsVideos, allSongsVideoListContainer);
@@ -1516,8 +1488,8 @@ function loadVideoFromAnyList(video, originalListType){        if (!playerReady 
 
                 // 初期表示として歌みたタブをアクティブにする
                 showTab('all-songs');
-            }, 2000); // 2秒間表示
-            });
+            }, 2500); // 2.5秒間表示
+        });
     </script>
 </body>
 </html>
