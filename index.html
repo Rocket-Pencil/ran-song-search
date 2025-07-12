@@ -1000,6 +1000,7 @@
         let currentVideoList = allSongsVideos; // 現在アクティブな動画リスト
         let currentVideoIndex = 0; // 現在再生中の動画のインデックス
         let ytPlayer; // YouTube Player APIインスタンス
+        let videoEndTimer; // 動画の終了を監視するタイマー
 
         // ヘルパー関数: 完全なYouTube ID文字列から動画ID、開始時間、終了時間を抽出
         function parseYoutubeId(fullYoutubeId) {
@@ -1085,6 +1086,8 @@
                 // プレイヤーが準備できたら、自動再生を試みる
                 try {
                     event.target.playVideo();
+                    // タイマーを開始 (onPlayerStateChangeでも処理されるが、念のため)
+                    startVideoEndTimer(currentVideoList[currentVideoIndex]);
                 } catch (e) {
                     console.warn("Autoplay prevented:", e);
                     // 自動再生がブロックされてもメッセージは表示しない
@@ -1114,6 +1117,8 @@
             }
             console.error("YouTube Player Error:", event.data, errorMessage);
             showMessage(errorMessage + " しばらくしてからもう一度お試しください。");
+            // エラー時もタイマーをクリア
+            clearVideoEndTimer();
         }
 
         // 次の動画を再生するユーティリティ
@@ -1131,8 +1136,56 @@
         }
 
         function onPlayerStateChange(event) {
+            // 動画の再生が終了した場合
             if (event.data === YT.PlayerState.ENDED) {
+                console.log("Video ended via YT.PlayerState.ENDED event.");
+                clearVideoEndTimer(); // タイマーがまだ動いている可能性があるのでクリア
                 playNextVideo(); // 共通関数を呼び出す
+            } else if (event.data === YT.PlayerState.PLAYING) {
+                // 再生が始まったら、タイマーを開始またはリセット
+                startVideoEndTimer(currentVideoList[currentVideoIndex]);
+            } else {
+                // 再生中ではない状態になったらタイマーを停止
+                clearVideoEndTimer();
+            }
+        }
+
+        /**
+         * 動画終了を監視するタイマーを開始します。
+         * @param {object} video - 現在再生中の動画オブジェクト
+         */
+        function startVideoEndTimer(video) {
+            clearVideoEndTimer(); // 既存のタイマーをクリア
+
+            const { startSeconds, endSeconds } = parseYoutubeId(video.youtubeId);
+
+            // endSecondsが設定されている動画のみタイマーを設定
+            if (endSeconds && endSeconds > startSeconds) {
+                videoEndTimer = setInterval(() => {
+                    if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+                        const currentTime = ytPlayer.getCurrentTime();
+                        // 終了時間の少し手前で次の動画をロードし始める
+                        if (currentTime >= endSeconds - 0.5) { // 0.5秒の余裕を持たせる
+                            console.log(`Timer triggered: Current time ${currentTime}, End time ${endSeconds}. Loading next video.`);
+                            playNextVideo();
+                            clearVideoEndTimer(); // 次の動画をロードしたらタイマーを停止
+                        }
+                    } else {
+                        // プレイヤーが利用できない場合はタイマーを停止
+                        clearVideoEndTimer();
+                    }
+                }, 500); // 0.5秒ごとにチェック
+            }
+        }
+
+        /**
+         * 動画終了を監視するタイマーをクリアします。
+         */
+        function clearVideoEndTimer() {
+            if (videoEndTimer) {
+                clearInterval(videoEndTimer);
+                videoEndTimer = null;
+                console.log("Video end timer cleared.");
             }
         }
 
@@ -1155,6 +1208,7 @@
                 }
                 currentlyLoadedFullYoutubeId = ''; // 動画がない場合は追跡IDをクリア
                 updateActiveClass();
+                clearVideoEndTimer(); // 動画がない場合はタイマーもクリア
             }
         }
 
@@ -1196,9 +1250,11 @@
                     // 動画をロードした後、再生を試みる
                     try {
                         ytPlayer.playVideo();
+                        startVideoEndTimer(video); // 新しい動画がロードされたらタイマーを開始
                     } catch (e) {
                         console.warn("Autoplay prevented after loadVideoById:", e);
                         // 自動再生がブロックされてもメッセージは表示しない
+                        clearVideoEndTimer(); // 自動再生がブロックされたらタイマーもクリア
                     }
                 } else {
                     // ytPlayerが未初期化の場合のフォールバック
@@ -1210,10 +1266,12 @@
                     youtubePlayerIframe.src = youtubeSrc;
                     console.warn("YouTube Player API not ready or loadVideoById not available, falling back to direct iframe src update.");
                     // 自動再生がブロックされてもメッセージは表示しない
+                    clearVideoEndTimer(); // フォールバックでもタイマーをクリア
                 }
                 updateActiveClass(); // アクティブクラスを更新
             } else {
                 console.error("Selected video not found in its original list.");
+                clearVideoEndTimer(); // 見つからない場合もタイマーをクリア
             }
         }
 
@@ -1380,6 +1438,7 @@
                         youtubePlayerIframe.src = "";
                     }
                     currentlyLoadedFullYoutubeId = '';
+                    clearVideoEndTimer(); // タブ切り替え時もタイマーをクリア
                 }
             } else if (tabName === 'karaoke') {
                 karaokeTabContent.classList.remove('hidden');
@@ -1407,6 +1466,7 @@
                         youtubePlayerIframe.src = "";
                     }
                     currentlyLoadedFullYoutubeId = '';
+                    clearVideoEndTimer(); // タブ切り替え時もタイマーをクリア
                 }
             } else if (tabName === 'search') { // 検索タブがアクティブになった場合
                 searchTabContent.classList.remove('hidden');
@@ -1424,6 +1484,7 @@
                 updateActiveClass(); // アクティブな表示をクリア
                 searchInput.value = ''; // 検索窓をクリア
                 renderVideoList([], searchResultsList); // 検索結果をクリア
+                clearVideoEndTimer(); // 検索タブではタイマーをクリア
             }
             else if (tabName === 'terms') {
                 termsTabContent.classList.remove('hidden');
@@ -1439,6 +1500,7 @@
                 }
                 currentlyLoadedFullYoutubeId = '';
                 updateActiveClass(); // アクティブな表示をクリア
+                clearVideoEndTimer(); // 利用規約タブではタイマーをクリア
             }
         }
 
