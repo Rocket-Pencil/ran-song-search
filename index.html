@@ -20,32 +20,8 @@
     <!-- タイトル／説明は既存の og:title・og:description を流用 -->
     <!-- End OGP Tags -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com">
-    // ---- 自動で次の動画へ移動 ----
-    
-function playNextVideo() {
-    if (currentVideoIndex + 1 < currentVideoList.length) {
-        currentVideoIndex++;
-    } else {
-        // 最後まで来たら先頭に戻る
-        currentVideoIndex = 0;
-    }
-    loadVideoFromAnyList(currentVideoList, currentVideoIndex);
-}
- else {
-            // 最後の動画まで再生したら停止（ループさせたい場合は currentVideoIndex = 0; に変更）
-            console.log("すべての動画を再生し終えました");
-        }
-    }
-    
-    // ---- プレイヤーの状態変化 ----
-    function onPlayerStateChange(event) {
-        if (event.data === YT.PlayerState.ENDED) {
-            playNextVideo();
-        }
-    }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQP1XQWqjR50l/Lg/P2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQP1XQWqjR50l/Lg/P2KqFj34x01+" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Body: パディングを#app-containerに移動。高さはビューポートいっぱい。 */
         body {
@@ -430,7 +406,7 @@ function playNextVideo() {
                             src=""
                             title="YouTube video player"
                             frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-in; gyroscope; picture-in-picture; web-share"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowfullscreen>
                     </iframe>
                 </div>
@@ -514,6 +490,32 @@ function playNextVideo() {
     </div>
 
     <script>
+    // ---- 次の動画へ移動（末尾なら先頭へループ） ----
+    function playNextVideo() {
+        if (!currentVideoList || currentVideoList.length === 0) return;
+        currentVideoIndex = (currentVideoIndex + 1) % currentVideoList.length;
+        const nextVideo = currentVideoList[currentVideoIndex];
+        loadVideoFromAnyList(nextVideo, currentOriginalListType);
+    }
+
+
+    // ---- 前の動画へ移動（先頭なら末尾へループ） ----
+    function playPrevVideo() {
+        if (!currentVideoList || currentVideoList.length === 0) return;
+        currentVideoIndex = (currentVideoIndex - 1 + currentVideoList.length) % currentVideoList.length;
+        const prevVideo = currentVideoList[currentVideoIndex];
+        loadVideoFromAnyList(prevVideo, currentOriginalListType);
+    }
+
+
+    // ---- プレーヤー状態監視 ----
+    function onPlayerStateChange(event) {
+        if (event.data === YT.PlayerState.ENDED) {
+            playNextVideo();
+        }
+    }
+
+
         // YouTube IFrame Player APIを非同期で読み込む
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -1141,29 +1143,9 @@ if (currentVideoList.length === 0) {
 
         // 次の動画を再生するユーティリティ
         
-function playNextVideo() {
-    if (currentVideoIndex + 1 < currentVideoList.length) {
-        currentVideoIndex++;
-    } else {
-        // 最後まで来たら先頭に戻る
-        currentVideoIndex = 0;
-    }
-    loadVideoFromAnyList(currentVideoList, currentVideoIndex);
-}
 
 
-        // 前の動画を再生するユーティリティ
-        function playPrevVideo() {
-            if (!currentVideoList || currentVideoList.length === 0) return;
-            const prevIndex = (currentVideoIndex - 1 + currentVideoList.length) % currentVideoList.length;
-            loadVideo(prevIndex);
-        }
 
-        function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.ENDED) {
-                playNextVideo(); // 共通関数を呼び出す
-            }
-        }
 
         /**
          * 指定された動画をYouTubeプレイヤーにロードします。(タブ内クリック用)
@@ -1192,7 +1174,10 @@ function playNextVideo() {
          * @param {object} video - ロードする動画オブジェクト
          * @param {string} originalListType - その動画が元々属していたリストのタイプ ('歌みた'または'カラオケ')
          */
-        function loadVideoFromAnyList(video, originalListType) {
+        let currentOriginalListType = '歌みた'; // 現在選択されているリストタイプ
+function loadVideoFromAnyList(video, originalListType) {
+    currentOriginalListType = originalListType;
+
             let targetList = [];
             if (originalListType === '歌みた') {
                 targetList = allSongsVideos;
@@ -1499,7 +1484,7 @@ function playNextVideo() {
 
 
         // ページロード時の処理
-        window.onload = function() {
+        window.addEventListener("load", () => {
             // スプラッシュスクリーンはAPIが読み込まれる前に表示される
             // 2秒後にスプラッシュスクリーンを非表示にし、メインコンテンツを表示
             setTimeout(() => {
@@ -1517,7 +1502,7 @@ function playNextVideo() {
                 // 初期表示として歌みたタブをアクティブにする
                 showTab('all-songs');
             }, 2000); // 2秒間表示
-        };
+            });
     </script>
 </body>
 </html>
