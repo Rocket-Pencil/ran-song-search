@@ -489,7 +489,11 @@
         </div>
     </div>
 
-    <script>
+    <script>let playerReady = false; let pendingVideo = null;
+let player;
+
+
+
     // ---- 次の動画へ移動（末尾なら先頭へループ） ----
     function playNextVideo() {
         if (!currentVideoList || currentVideoList.length === 0) return;
@@ -1101,9 +1105,16 @@ if (currentVideoList.length === 0) {
                     'onError': onPlayerError // エラーイベントリスナーを追加
                 }
             });
-        }
+        player = ytPlayer;
+}
 
         function onPlayerReady(event) {
+            playerReady = true;
+            if (pendingVideo) {
+                loadVideoFromAnyList(pendingVideo.video, pendingVideo.originalListType);
+                pendingVideo = null;
+            }
+
             console.log("YouTube Player is ready!");
             if (currentVideoList.length > 0) {
                 updateActiveClass();
@@ -1175,13 +1186,17 @@ if (currentVideoList.length === 0) {
          * @param {string} originalListType - その動画が元々属していたリストのタイプ ('歌みた'または'カラオケ')
          */
         let currentOriginalListType = '歌みた'; // 現在選択されているリストタイプ
-function loadVideoFromAnyList(video, originalListType) {
+function loadVideoFromAnyList(video, originalListType){        if (!playerReady || !player || !player.loadVideoById) {
+            pendingVideo = { video: video, originalListType: originalListType };
+            return;
+        }
+
     currentOriginalListType = originalListType;
 
             let targetList = [];
             if (originalListType === '歌みた') {
                 targetList = allSongsVideos;
-            } else if (originalListType === 'カラオケ') {
+            }else if (originalListType === 'カラオケ') {
                 targetList = karaokeVideos;
             }
 
