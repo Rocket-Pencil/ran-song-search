@@ -2,76 +2,188 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>YouTube 自動再生テスト</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 30px;
-    }
-    #player {
-      margin: 20px auto;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ran 歌枠検索サイト (非公式)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#FDEBF7;margin:0;overflow:hidden;height:100vh}
+  /* splash */
+  #splash-screen{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#fff;transition:opacity .5s ease-out}
+  #splash-screen.fade-out{opacity:0;pointer-events:none}
+  #splash-bg{position:absolute;inset:0;object-fit:cover;width:100%;height:100%}
+  .splash-content{position:relative;z-index:1;text-align:center;color:#333}
+  #splash-heading{background:rgba(255,192,203,.7);padding:.5rem 1rem;border-radius:.5rem}
+  #splash-heading .unofficial{font-size:.6em}
+  /* main */
+  #app-container{display:none;height:100%;padding:.5rem;box-sizing:border-box;flex-direction:column;overflow:hidden}
+  #app-container.show{display:flex}
+  .main-container{flex:1;display:flex;flex-direction:column;max-width:960px;margin:auto;background:#fff;padding:1rem;border-radius:.75rem;box-shadow:0 10px 15px -3px rgba(0,0,0,.1)}
+  @media(min-width:1024px){.main-container{flex-direction:row;padding:2rem}}
+  .left-pane{width:100%}
+  @media(min-width:1024px){.left-pane{width:66.666%}}
+  .video-wrapper{position:relative;width:100%;padding-bottom:56.25%;border-radius:.75rem;overflow:hidden}
+  .video-wrapper iframe{position:absolute;inset:0;width:100%;height:100%}
+  .right-pane{flex:1;margin-top:1rem;display:flex;flex-direction:column}
+  @media(min-width:1024px){.right-pane{margin-top:0;margin-left:1.5rem}}
+  .tab-button{padding:.5rem .875rem;border:2px solid #FFD1DD;border-bottom:none;border-radius:.5rem .5rem 0 0;background:#fff;font-weight:600;font-size:.75rem;margin-right:.25rem;cursor:pointer}
+  .tab-button.active{background:#FFC0CB;color:#fff;border-color:#FFC0CB}
+  .scrollable-content{flex:1;overflow-y:auto;padding-top:1rem}
+  .tab-content{display:none}
+  .tab-content.show{display:block}
+  .video-item{padding:.5rem .75rem;border:2px solid transparent;border-radius:.5rem;cursor:pointer;transition:background .2s,border .2s}
+  .video-item:hover{background:#FEEBF2}
+  .video-item.active{border-color:#7B247C;background:#FFF0F5}
+</style>
 </head>
 <body>
-  <h1>🎵 自動再生テスト：歌みたプレイリスト 🎵</h1>
-  <div id="player"></div>
-  <p id="video-title"></p>
+<!-- Splash -->
+<div id="splash-screen">
+  <video id="splash-bg" autoplay muted playsinline>
+    <source src="image/opening01.mp4" type="video/mp4">
+  </video>
+  <div class="splash-content">
+    <h1 id="splash-heading" class="text-4xl font-bold">VTuber<br>Ranの<br>song search<br><span class="unofficial">【非公式】</span></h1>
+    <p class="mt-2">読み込み中...</p>
+  </div>
+</div>
 
-  <script>
-    const allSongsVideos = [
-      { title: "ルーマー", youtubeId: "wmS71Rh39fo", type: "歌みた" },
-      { title: "ラヴィ", youtubeId: "xMdp3CXO9Z0", type: "歌みた" },
-      { title: "SOS", youtubeId: "qFc2LDBlBKY", type: "歌みた" },
-      { title: "Happy Halloween", youtubeId: "qYM9T4TnTxg", type: "歌みた" },
-      { title: "撫でんな", youtubeId: "1Z6RC44i3b4", type: "歌みた" }
-    ];
+<!-- App -->
+<div id="app-container">
+  <div class="main-container">
+    <!-- Player -->
+    <div class="left-pane">
+      <div class="video-wrapper">
+        <div id="player"></div>
+      </div>
+      <p id="current-title" class="mt-3 text-center font-semibold text-[#6A0DAD]"></p>
+      <div class="flex justify-center space-x-4 mt-2">
+        <button id="prev-btn" class="px-3 py-1.5 bg-[#FFC0CB] text-white rounded">前へ</button>
+        <button id="next-btn" class="px-3 py-1.5 bg-[#FFC0CB] text-white rounded">次へ</button>
+      </div>
+    </div>
+    <!-- Lists -->
+    <div class="right-pane">
+      <div class="flex justify-center lg:justify-start -mb-px">
+        <button class="tab-button active" data-tab="uta">歌みた</button>
+        <button class="tab-button" data-tab="kawa">歌枠</button>
+      </div>
+      <div class="scrollable-content">
+        <div id="uta" class="tab-content show"></div>
+        <div id="kawa" class="tab-content"></div>
+      </div>
+    </div>
+  </div>
+  <p class="text-center text-sm text-[#B0B0B0] mt-4">© 2025 歌枠検索サイト（非公式）</p>
+</div>
 
-    let currentIndex = 0;
-    let player;
+<!-- YouTube API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+/* -------------------- Splash Transition -------------------- */
+function hideSplash(){
+  document.body.style.overflow='auto';
+  document.getElementById('splash-screen').classList.add('fade-out');
+  setTimeout(()=>document.getElementById('app-container').classList.add('show'),500);
+}
+// fallback timer (4.5s) in case video is long
+setTimeout(hideSplash,4500);
+document.getElementById('splash-bg').addEventListener('ended',hideSplash);
 
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.body.appendChild(tag);
+/* -------------------- Data -------------------- */
+const utaVideos=[
+  {title:"ルーマー",id:"wmS71Rh39fo"},
+  {title:"ラヴィ",id:"xMdp3CXO9Z0"},
+  {title:"SOS",id:"qFc2LDBlBKY"},
+  {title:"Happy Halloween",id:"qYM9T4TnTxg"},
+  {title:"撫でんな",id:"1Z6RC44i3b4"}
+];
+const kawaVideos=[
+  {title:"拍手喝采歌合",id:"27ErH81eCa4",start:266,end:499},
+  {title:"ROCK-mode",id:"27ErH81eCa4",start:624,end:913},
+  {title:"The Everlasting Guilty Crown",id:"27ErH81eCa4",start:1030,end:1340}
+];
 
-    function onYouTubeIframeAPIReady() {
-      loadVideo(currentIndex);
-    }
+/* -------------------- State -------------------- */
+let currentList=utaVideos;
+let currentIndex=0;
+let player;
 
-    function loadVideo(index) {
-      document.getElementById("video-title").textContent = "再生中: " + allSongsVideos[index].title;
+/* -------------------- Build Lists -------------------- */
+function buildList(containerId,data){
+  const container=document.getElementById(containerId);
+  data.forEach((v,i)=>{
+    const div=document.createElement('div');
+    div.className='video-item';
+    div.textContent=v.title;
+    div.addEventListener('click',()=>{playFromList(data,i);});
+    container.appendChild(div);
+  });
+}
+buildList('uta',utaVideos);
+buildList('kawa',kawaVideos);
 
-      if (player) {
-        player.loadVideoById(allSongsVideos[index].youtubeId);
-      } else {
-        player = new YT.Player('player', {
-          height: '360',
-          width: '640',
-          videoId: allSongsVideos[index].youtubeId,
-          playerVars: {
-            autoplay: 1,
-            controls: 1,
-            rel: 0
-          },
-          events: {
-            'onStateChange': onPlayerStateChange
-          }
-        });
-      }
-    }
+function highlightItem(list,index){
+  Array.from(list.querySelectorAll('.video-item')).forEach((el,i)=>el.classList.toggle('active',i===index));
+}
 
-    function onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.ENDED) {
-        currentIndex++;
-        if (currentIndex < allSongsVideos.length) {
-          loadVideo(currentIndex);
-        } else {
-          document.getElementById("video-title").textContent = "すべての動画の再生が終了しました。";
-        }
-      }
-    }
-  </script>
+/* -------------------- Tab Handling -------------------- */
+document.querySelectorAll('.tab-button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('show'));
+    document.getElementById(btn.dataset.tab).classList.add('show');
+    // update list reference
+    if(btn.dataset.tab==='uta'){currentList=utaVideos;}
+    else{currentList=kawaVideos;}
+    currentIndex=0;
+    playCurrent();
+  });
+});
+
+/* -------------------- YouTube API Ready -------------------- */
+function onYouTubeIframeAPIReady(){
+  player=new YT.Player('player',{
+    height:'360',width:'640',
+    videoId:'',
+    playerVars:{autoplay:1,controls:1,rel:0},
+    events:{onStateChange:onPlayerStateChange}
+  });
+  playCurrent();
+}
+
+/* -------------------- Playback Helpers -------------------- */
+function playCurrent(){
+  const v=currentList[currentIndex];
+  const opts={videoId:v.id,startSeconds:v.start||0,endSeconds:v.end||undefined};
+  player.loadVideoById(opts);
+  document.getElementById('current-title').textContent="再生中: "+v.title;
+  // highlight
+  const listEl=document.getElementById(currentList===utaVideos?'uta':'kawa');
+  highlightItem(listEl,currentIndex);
+}
+function playFromList(list,index){
+  currentList=list;
+  currentIndex=index;
+  playCurrent();
+}
+function next(){
+  currentIndex=(currentIndex+1)%currentList.length;
+  playCurrent();
+}
+function prev(){
+  currentIndex=(currentIndex-1+currentList.length)%currentList.length;
+  playCurrent();
+}
+document.getElementById('next-btn').addEventListener('click',next);
+document.getElementById('prev-btn').addEventListener('click',prev);
+
+/* auto next */
+function onPlayerStateChange(e){
+  if(e.data===YT.PlayerState.ENDED){next();}
+}
+</script>
 </body>
 </html>
