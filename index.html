@@ -21,7 +21,7 @@
     <!-- End OGP Tags -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQP1XQWqjR50l/Lg/P2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQP1XQWqjR50l/Lg/P2KqFj34x01+" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQP1XQWqjR50l/Lg/P2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQP1XQWqjR50l/Lg/P2KqFj34x01+" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Body: パディングを#app-containerに移動。高さはビューポートいっぱい。 */
         body {
@@ -406,7 +406,7 @@
                             src=""
                             title="YouTube video player"
                             frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-in; gyroscope; picture-in-picture; web-share"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowfullscreen>
                     </iframe>
                 </div>
@@ -747,7 +747,7 @@
             { title: "右肩の蝶", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('1:46:16')}&end=${timeToSeconds('1:50:40')}`, type: "カラオケ" },
             { title: "PEACH", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('1:52:52')}&end=${timeToSeconds('1:56:53')}`, type: "カラオケ" },
             { title: "夏色えがおで1,2,Jump!", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('1:57:58')}&end=${timeToSeconds('2:02:26')}`, type: "カラオケ" },
-            { title: "オトナブルー", youtubeId: `1YzSWuVorC4?start=${timeToSeconds('2:08:18')}&end=${timeToSeconds('2:11:20')}`, type: "カラオケ" },
+            { title: "オトナブルー", youtubeId: `2:08:18?start=${timeToSeconds('2:08:18')}&end=${timeToSeconds('2:11:20')}`, type: "カラオケ" },
             { title: "トウキョウ・シャンディ・ランデヴ", youtubeId: `2:13:31?start=${timeToSeconds('2:13:31')}&end=${timeToSeconds('2:16:32')}`, type: "カラオケ" },
             // 既存の歌枠の曲 (URL: https://www.youtube.com/live/kxlrKZmgJpA)
             { title: "Magnetic", youtubeId: `kxlrKZmgJpA?start=${timeToSeconds('6:00')}&end=${timeToSeconds('8:38')}`, type: "カラオケ" },
@@ -1000,7 +1000,7 @@
         let currentlyLoadedFullYoutubeId = '';
         let currentVideoList = allSongsVideos; // 現在アクティブな動画リスト
         let currentVideoIndex = 0; // 現在再生中の動画のインデックス
-        let ytPlayer; // YouTube Player APIインスタンス
+        let player; // YouTube Player APIインスタンス
 
         // ヘルパー関数: 完全なYouTube ID文字列から動画ID、開始時間、終了時間を抽出
         function parseYoutubeId(fullYoutubeId) {
@@ -1042,46 +1042,39 @@
 
         // YouTube IFrame Player APIが読み込まれたときに呼ばれる関数 (グローバル関数)
         function onYouTubeIframeAPIReady() {
-            // YouTubeプレイヤーを初期化します。
-            // 初期動画IDは空にしておき、onPlayerReadyで最初の動画をロードします。
-            ytPlayer = new YT.Player('youtube-player', {
-                height: '100%',
-                width: '100%',
-                videoId: '', // 初期状態では動画を読み込まない
-                playerVars: {
-                    'playsinline': 1,
-                    'rel': 0, // 関連動画を表示しない
-                },
+            console.log("onYouTubeIframeAPIReady fired.");
+            player = new YT.Player('youtube-player', {
+                videoId: 'wmS71Rh39fo', // 最初に再生する動画 ID
+                playerVars: { autoplay: 1, controls: 1, rel: 0, modestbranding: 1 },
                 events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange,
-                    'onError': onPlayerError // エラーイベントリスナーを追加
+                    onStateChange: e => {
+                        if (e.data === YT.PlayerState.ENDED) {
+                            // ここで次の動画を再生する処理などを呼び出す
+                            playNextVideo();
+                        }
+                    },
+                    'onReady': onPlayerReady, // onPlayerReadyイベントも引き続き使用
+                    'onError': onPlayerError // エラーイベントリスナーも引き続き使用
                 }
             });
         }
 
         function onPlayerReady(event) {
-            console.log("YouTube Player is ready!");
+            console.log("onPlayerReady fired. Player state:", event.data);
 
-            // プレイヤーが準備できたら、メインコンテンツの初期レンダリングとタブのアクティブ化を行います。
-            // これにより、ytPlayerが確実に利用可能な状態で動画がロードされます。
+            // プレイヤーが準備できたら、まず動画リストをレンダリング
             renderVideoList(allSongsVideos, allSongsVideoListContainer);
             renderVideoList(karaokeVideos, karaokeVideoListContainer);
 
-            // 初期表示として歌みたタブをアクティブにし、最初の動画をロードします。
-            showTab('all-songs');
+            // onYouTubeIframeAPIReadyで既に動画がロードされているため、ここではタブのアクティブ化のみ行う
+            showTab('all-songs'); 
 
-            // onPlayerReadyで自動再生を試みます。
-            // showTab('all-songs')の中でloadVideoが呼ばれ、その中でplayVideoが試行されるため、
-            // ここでのevent.target.playVideo()は通常不要ですが、念のため残すことも可能です。
-            // ただし、ブラウザの自動再生ポリシーによりブロックされる場合があります。
-            try {
-                // 初回の動画ロードはshowTab内で処理されるため、ここでは不要かもしれません。
-                // 必要であれば、ここでevent.target.playVideo(); を呼び出すこともできますが、
-                // loadVideoFromAnyList内で既にplayVideoを試行しています。
-            } catch (e) {
-                console.warn("Autoplay prevented onPlayerReady:", e);
-            }
+            // 自動再生はブラウザポリシーによりブロックされる可能性があるため、コメントアウトを維持
+            // try {
+            //     event.target.playVideo();
+            // } catch (e) {
+            //     console.warn("Autoplay prevented onPlayerReady:", e);
+            // }
         }
 
         // YouTubeプレイヤーのエラーハンドリング
@@ -1122,12 +1115,6 @@
             loadVideo(prevIndex);
         }
 
-        function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.ENDED) {
-                playNextVideo(); // 共通関数を呼び出す
-            }
-        }
-
         /**
          * 指定された動画をYouTubeプレイヤーにロードします。(タブ内クリック用)
          * @param {number} index - ロードする動画のcurrentVideoList配列内のインデックス
@@ -1139,8 +1126,8 @@
                 loadVideoFromAnyList(video, video.type);
             } else {
                 currentSongTitle.textContent = "曲がありません";
-                if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-                    ytPlayer.stopVideo();
+                if (player && typeof player.stopVideo === 'function') {
+                    player.stopVideo();
                     youtubePlayerIframe.src = "";
                 } else if (youtubePlayerIframe) {
                     youtubePlayerIframe.src = "";
@@ -1183,17 +1170,17 @@
                     loadOptions.endSeconds = endSeconds;
                 }
                 
-                if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
-                    ytPlayer.loadVideoById(loadOptions);
+                if (player && typeof player.loadVideoById === 'function') {
+                    player.loadVideoById(loadOptions);
                     // 動画をロードした後、再生を試みる
                     try {
-                        ytPlayer.playVideo();
+                        player.playVideo();
                     } catch (e) {
                         console.warn("Autoplay prevented after loadVideoById:", e);
                         // 自動再生がブロックされてもメッセージは表示しない
                     }
                 } else {
-                    // ytPlayerが未初期化の場合のフォールバック (通常は発生しないはず)
+                    // playerが未初期化の場合のフォールバック (通常は発生しないはず)
                     // ここに `&rel=0` を追加して関連動画を非表示にする
                     let youtubeSrc = `https://www.youtube.com/embed/${rawId}?rel=0`;
                     if (startSeconds > 0) youtubeSrc += `&start=${startSeconds}`;
@@ -1217,6 +1204,7 @@
          * @param {HTMLElement} containerElement - 動画を挿入するコンテナDOM要素
          */
         function renderVideoList(videoArray, containerElement) {
+            console.log(`Rendering list for container: ${containerElement.id} with ${videoArray.length} videos.`);
             containerElement.innerHTML = ''; // 既存のリストをクリア
             if (videoArray.length === 0) {
                 const noResults = document.createElement('p');
@@ -1315,6 +1303,7 @@
          * 現在再生中の動画に対応するリストアイテムにアクティブクラスを追加します。
          */
         function updateActiveClass() {
+            console.log("updateActiveClass called. Currently loaded ID:", currentlyLoadedFullYoutubeId);
             // 全ての動画アイテムからアクティブクラスを削除
             document.querySelectorAll('[data-original-type]').forEach(item => {
                 item.classList.remove('border-2', 'border-[#6A0DAD]', 'bg-[#FEEBF2]');
@@ -1336,6 +1325,7 @@
          * @param {string} tabName - 切り替えるタブの名前 ('all-songs', 'karaoke', 'search', または 'terms')
          */
         function showTab(tabName) {
+            console.log(`Showing tab: ${tabName}`);
             // 全てのタブコンテンツを非表示にする
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.add('hidden');
@@ -1361,13 +1351,26 @@
                         currentVideoIndex = currentVideoList.indexOf(currentVideoInList);
                         loadVideo(currentVideoIndex);
                     } else {
-                        currentVideoIndex = 0; // 一致する動画がない場合は、リストの最初の動画をロード
-                        loadVideo(currentVideoIndex);
+                        // 既に onYouTubeIframeAPIReady で最初の動画がロードされているはずなので、
+                        // ここでは動画の再ロードは行わない。
+                        // ただし、タブ切り替えで別の動画がロードされた後にこのタブに戻る場合は、
+                        // その動画がこのリストにあればそれを、なければ最初の動画をロードする。
+                        if (!currentlyLoadedFullYoutubeId) { // 初回ロード時のみ
+                            currentVideoIndex = 0;
+                            loadVideo(currentVideoIndex);
+                        } else { // 既に動画がロードされている場合
+                            // 何もしないか、現在の動画がこのリストにない場合に最初の動画をロード
+                            const currentVideoExistsInThisList = currentVideoList.some(v => v.youtubeId === currentlyLoadedFullYoutubeId);
+                            if (!currentVideoExistsInThisList) {
+                                currentVideoIndex = 0;
+                                loadVideo(currentVideoIndex);
+                            }
+                        }
                     }
                 } else {
                     currentSongTitle.textContent = "曲がありません";
-                    if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-                        ytPlayer.stopVideo();
+                    if (player && typeof player.stopVideo === 'function') {
+                        player.stopVideo();
                         youtubePlayerIframe.src = "";
                     } else if (youtubePlayerIframe) {
                         youtubePlayerIframe.src = "";
@@ -1393,8 +1396,8 @@
                     }
                 } else {
                     currentSongTitle.textContent = "曲がありません";
-                    if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-                        ytPlayer.stopVideo();
+                    if (player && typeof player.stopVideo === 'function') {
+                        player.stopVideo();
                         youtubePlayerIframe.src = "";
                     } else if (youtubePlayerIframe) {
                         youtubePlayerIframe.src = "";
@@ -1407,8 +1410,8 @@
                 searchTabButton.classList.add('active');
                 currentVideoList = null; // 検索タブでは動画リストの概念を一時的にリセット
                 currentSongTitle.textContent = "検索"; // タイトル表示を更新
-                if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-                    ytPlayer.stopVideo(); // 動画を停止
+                if (player && typeof player.stopVideo === 'function') {
+                    player.stopVideo(); // 動画を停止
                     youtubePlayerIframe.src = ""; // プレイヤーを空にする
                 } else if (youtubePlayerIframe) {
                     youtubePlayerIframe.src = "";
@@ -1424,8 +1427,8 @@
                 termsTabButton.classList.add('active');
                 currentVideoList = null; // 利用規約タブでは動画リストがない
                 currentSongTitle.textContent = "利用規約"; // タイトル表示を更新
-                if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-                    ytPlayer.stopVideo(); // 動画を停止
+                if (player && typeof player.stopVideo === 'function') {
+                    player.stopVideo(); // 動画を停止
                     youtubePlayerIframe.src = ""; // 
                 } else if (youtubePlayerIframe) {
                     youtubePlayerIframe.src = "";
@@ -1464,6 +1467,7 @@
 
         // ページロード時の処理
         window.onload = function() {
+            console.log("window.onload fired.");
             // スプラッシュスクリーンはAPIが読み込まれる前に表示される
             // 2秒後にスプラッシュスクリーンを非表示にし、メインコンテンツを表示
             setTimeout(() => {
@@ -1472,12 +1476,8 @@
                     splashScreen.style.display = 'none'; // フェードアウト後に非表示にする
                     appContainer.classList.add('show'); // メインコンテンツを表示
                     document.body.style.overflow = "auto"; // (1) bodyのoverflow:hiddenを解除
+                    console.log("App container shown.");
                 }, 500); // フェードアウトのtransition時間と同じかそれ以上に設定
-
-                // YouTube APIに依存する初期レンダリングは onPlayerReady で実行されるため、ここからは削除
-                // renderVideoList(allSongsVideos, allSongsVideoListContainer);
-                // renderVideoList(karaokeVideos, karaokeVideoListContainer);
-                // showTab('all-songs');
             }, 2000); // 2秒間表示
         };
     </script>
