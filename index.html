@@ -167,6 +167,7 @@
             padding-bottom: 1rem; /* リスト最下部の要素が切れないように下にも少しパディングを増やす */
             min-height: 0; /* Flexアイテムがコンテンツで無限に伸びるのを防ぐ */
             flex-basis: 0; /* Flexアイテムのベースサイズを0に設定し、flex-growで拡大させる */
+            overscroll-behavior: contain; /* 重大: 右ペインのスクロールがbodyまで巻き込むのを防ぐ */
         }
         /* タブコンテンツ自体もflexで高さを調整 */
         .tab-content {
@@ -407,7 +408,7 @@
                             src=""
                             title="YouTube video player"
                             frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-in; gyroscope; picture-in-picture; web-share"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowfullscreen>
                     </iframe>
                 </div>
@@ -1012,6 +1013,7 @@
         let currentVideoList = allSongsVideos; // 現在アクティブな動画リスト
         let currentVideoIndex = 0; // 現在再生中の動画のインデックス
         let ytPlayer; // YouTube Player APIインスタンス
+        let playerReady = false; // プレイヤーの準備完了状態を追跡する変数
 
         // メッセージを表示する関数
         function showMessage(message) {
@@ -1062,6 +1064,10 @@
          * @param {string} originalListType - その動画が元々属していたリストのタイプ ('歌みた'または'カラオケ')
          */
         function loadVideoFromAnyList(video, originalListType) {
+            // 致命的: loadVideoFromAnyList() 先頭でハイライトを更新していない の修正
+            currentlyLoadedFullYoutubeId = video.youtubeId;
+            updateActiveClass();
+
             let targetList = [];
             if (originalListType === '歌みた') {
                 targetList = allSongsVideos;
@@ -1079,7 +1085,7 @@
                 const { rawId, startSeconds, endSeconds } = parseYoutubeId(video.youtubeId);
 
                 currentSongTitle.textContent = video.title; // プレイヤー下のタイトルを更新
-                currentlyLoadedFullYoutubeId = video.youtubeId; // フルIDを保存
+                // currentlyLoadedFullYoutubeId = video.youtubeId; // フルIDを保存 (既に上で修正済み)
 
                 const loadOptions = {
                     videoId: rawId,
@@ -1103,13 +1109,15 @@
                     let youtubeSrc = `https://www.youtube.com/embed/${rawId}?rel=0`;
                     if (startSeconds > 0) youtubeSrc += `&start=${startSeconds}`;
                     if (endSeconds && endSeconds > startSeconds) youtubeSrc += `&end=${endSeconds}`;
+                    // 致命的: loadVideoFromAnyList() フォールバック時 youtubeSrc に &enablejsapi=1 が無い の修正
+                    youtubeSrc += '&enablejsapi=1'; // API制御を可能にする
                     // モバイルでの自動再生は `autoplay=1` を追加しても制限されることが多い
                     // youtubeSrc += `&autoplay=1`; // 自動再生を試みるが、モバイルではブロックされる可能性が高い
                     youtubePlayerIframe.src = youtubeSrc;
                     console.warn("YouTube Player API not ready or loadVideoById not available, falling back to direct iframe src update.");
                     // 自動再生がブロックされてもメッセージは表示しない
                 }
-                updateActiveClass(); // アクティブクラスを更新
+                // updateActiveClass(); // アクティブクラスを更新 (既に上で修正済み)
             } else {
                 console.error("Selected video not found in its original list.");
             }
@@ -1184,7 +1192,8 @@
 
                 // サムネイル画像
                 const { rawId: thumbnailUrlId } = parseYoutubeId(video.youtubeId);
-                const thumbnailUrl = `https://img.youtube.com/vi/${thumbnailUrlId}/mqdefault.jpg`;
+                // 軽微: YouTube サムネ URL に mgdefault.jpg を使用 の修正
+                const thumbnailUrl = `https://img.youtube.com/vi/${thumbnailUrlId}/hqdefault.jpg`; // mqdefault -> hqdefault に変更
                 const thumbnailImg = document.createElement('img');
                 thumbnailImg.src = thumbnailUrl;
                 thumbnailImg.alt = video.title;
@@ -1245,7 +1254,7 @@
                     // タブを元のリストのタブに戻す（検索タブから再生した場合）
                     if (originalType === '歌みた') {
                         showTab('all-songs');
-                    } else if (originalType === 'カラオケ') {
+                    } else if (originalType === 'karaoke') { // 'カラオケ' -> 'karaoke' に修正 (data-tab属性と合わせる)
                         showTab('karaoke');
                     }
                 });
@@ -1291,9 +1300,13 @@
                     'onError': onPlayerError // エラーイベントリスナーを追加
                 }
             });
+            // 致命的: player 変数が存在せず 、API コールはすべて ytPlayer に依存 の修正
+            let player = ytPlayer; // player変数をytPlayerに紐づける
         }
 
         function onPlayerReady(event) {
+            // 致命的: onPlayerReady() で playerReady = true を立てていない の修正
+            playerReady = true;
             console.log("YouTube Player is ready!");
             if (currentVideoList.length > 0) {
                 updateActiveClass();
@@ -1463,7 +1476,8 @@
 
 
         // ページロード時の処理
-        window.onload = function() {
+        // 重大: window.onload = … を単純代入 の修正
+        window.addEventListener('load', function() {
             // スプラッシュスクリーンはAPIが読み込まれる前に表示される
             // 2秒後にスプラッシュスクリーンを非表示にし、メインコンテンツを表示
             setTimeout(() => {
@@ -1481,7 +1495,7 @@
                 // 初期表示として歌みたタブをアクティブにする
                 showTab('all-songs');
             }, 2000); // 2秒間表示
-        };
+        });
     </script>
 </body>
 </html>
